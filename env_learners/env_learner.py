@@ -85,13 +85,20 @@ class EnvLearner:
 
         # assert len(X) == len(yS) == len(yR) == len(yD) == len(S) == len(A)
 
-        p = np.random.permutation(len(X))
-        X = np.array(X)[p]
-        yS = np.array(yS)[p]
-        yR = np.array(yR)[p]
-        yD = np.array(yD)[p]
-        S = np.array(S)[p]
-        A = np.array(A)[p]
+        # p = np.random.permutation(len(X))
+        # X = np.array(X)[p]
+        # yS = np.array(yS)[p]
+        # yR = np.array(yR)[p]
+        # yD = np.array(yD)[p]
+        # S = np.array(S)[p]
+        # A = np.array(A)[p]
+
+        X = np.array(X)
+        yS = np.array(yS)
+        yR = np.array(yR)
+        yD = np.array(yD)
+        S = np.array(S)
+        A = np.array(A)
 
 
         if batch_size > 0:
@@ -115,6 +122,9 @@ class EnvLearner:
         pass
 
     def get_loss(self, data):
+        pass
+
+    def reset(self, obs_in):
         pass
 
     def step(self, obs_in, action_in, episode_step, save=True, buff=None):

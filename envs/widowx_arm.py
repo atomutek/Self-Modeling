@@ -21,7 +21,7 @@ from test_planners.control_widowx import calc_end_effector_pos, clip_joints
 
 # TODO migrate ROS interface to python3
 class WidowxROS(gym.Env):
-    def __init__(self):
+    def __init__(self, env_learner=None, test=False):
         print("============ Starting setup")
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('move_group_python_interface_tutorial',
@@ -50,12 +50,17 @@ class WidowxROS(gym.Env):
         self.gsvr = GetStateValidityRequest()
         self.gsvr.group_name = 'widowx_arm'
 
+        self.env_learner = env_learner
+        self.test = test
 
         # last 3 are gathered from data, more precision needed there
-        bounds = np.array([2.617, 1.571, 1.571, 1.745, 0.37, 0.37, 0.51])
+        self.bounds = np.array([2.617, 1.571, 1.571, 1.745, 0.37, 0.37, 0.51])
+        if self.test or self.env_learner is not None:
+            self.bounds = np.array([2.617, 1.571, 1.571, 1.745, 0.37, 0.37, 0.51, 0.37, 0.37, 0.51])
+
         # bounds = np.array([2.617, 1.571, 1.571, 1.745, 2.617, 0.37, 0.37, 0.51])
         self.action_space = spaces.Box(-math.pi/16.0, math.pi/16.0, shape=(4,))
-        self.observation_space = spaces.Box(low=-bounds, high=bounds)
+        self.observation_space = spaces.Box(low=-self.bounds, high=self.bounds)
 
         self.max_iter = 100
 
@@ -98,10 +103,32 @@ class WidowxROS(gym.Env):
         self.position = calc_end_effector_pos(self.angles)
         self.state = np.concatenate([self.angles, self.position], axis=0)
         self.d = float(np.linalg.norm(self.position - self.target))
-
+        self.ep_r = 0
+        if self.test or self.env_learner is not None:
+            self.state = np.concatenate([self.state, self.target], axis=0)
         return self.state
 
-    def step(self, action, save=True):
+    def step(self, action, save=True, obs_in=None):
+        if self.env_learner is not None:
+            self.iteration += 1
+
+            max_action = self.action_space.high
+
+            self.state = self.env_learner.step(obs_in=self.state[:-3], action_in=max_action * action, episode_step=self.iteration, save=False)
+            self.position = self.state[-3:]
+            new_d = float(np.linalg.norm(self.position - self.target))
+            if self.iteration == 1:
+                r = -new_d
+            else:
+                r = self.d - new_d
+            self.d = new_d
+            self.ep_r += r
+            self.done = (self.iteration>99 or self.d < 0.01)
+            self.state = np.concatenate([self.state, self.target], axis=0)
+            # r -= 0.001
+            # print('Self Model')
+            return self.state, r, self.done, {}
+
         if save:
             self.iteration += 1
             # New Joint State
@@ -113,32 +140,34 @@ class WidowxROS(gym.Env):
             collision = not self.stateValidator.call(self.gsvr).valid
 
             # Only updating if there is no collision and thus valid
-            # new_state = np.zeros_like(state)+state
             if not collision:
-                # self.position = get_end_effector_pos(self.moveit_fk, self.rs)
                 self.position = calc_end_effector_pos(test_angle)
-
-                # self.orientation = np.array([end_effector.orientation.w, end_effector.orientation.x, end_effector.orientation.y,
-                #                         end_effector.orientation.z])
-
                 self.angles = np.zeros_like(test_angle)+test_angle
                 self.state = np.concatenate([self.angles, self.position], axis=0)
-            # else:
-            #     print('Step '+str(episode_step)+' Collision!')
-            # angles_list.append(np.zeros_like(angles)+angles)
-            # episode.append([state, action*max_action, 0.0, new_state, (episode_step==99), episode_step])
-            self.done = (self.iteration>=99)
-
+                # self.position = self.state[-3:]
             new_d = float(np.linalg.norm(self.position - self.target))
             if self.iteration == 1:
                 r = -new_d
             else:
                 r = self.d - new_d
+            self.d = new_d
+            self.ep_r += r
+            self.done = (self.iteration>99 or self.d < 0.01)
+            # if self.done:
+            #     print('')
+            if self.test and not collision:
+                self.state = np.concatenate([self.state, self.target], axis=0)
+            # r -= 0.001
             return self.state, r, self.done, {}
+
         else:
+            if obs_in is None:
+                tmp_angles = np.zeros_like(self.angles)+self.angles
+                tmp_position = np.zeros_like(self.position)+self.position
+            else:
+                tmp_angles = obs_in[:-3]
+                tmp_position = obs_in[-3:]
             tmp_iteration = self.iteration + 1
-            tmp_angles = np.zeros_like(self.angles)+self.angles
-            tmp_position = np.zeros_like(self.position)+self.position
             tmp_state = np.zeros_like(self.state)+self.state
 
             # New Joint State
@@ -164,7 +193,7 @@ class WidowxROS(gym.Env):
             #     print('Step '+str(episode_step)+' Collision!')
             # angles_list.append(np.zeros_like(angles)+angles)
             # episode.append([state, action*max_action, 0.0, new_state, (episode_step==99), episode_step])
-            tmp_done = (tmp_iteration>=99)
+            tmp_done = (tmp_iteration>99)
 
             new_d = float(np.linalg.norm(tmp_position - self.target))
             if tmp_iteration == 1:

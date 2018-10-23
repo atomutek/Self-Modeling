@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # reset_target = np.array([0.171, 0.163, 0.18])
     # load = 'models/2018-08-05-12:11:16.ckpt' # 100K DNN Seq (5)
     # load = 'models/2018-08-15-19:24:23.ckpt' # 10K DNN Seq (5) Deformed Adaptation
-    load = 'models/2018-08-18-07:31:09.ckpt' # 100K DNN Seq (5) Real
+    load = '../models/2018-08-18-07:31:09.ckpt' # 100K DNN Seq (5) Real
     env = WidowxROS()
     max_action = env.action_space.high
     env_learner = DNNEnvLearner(env)

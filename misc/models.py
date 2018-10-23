@@ -228,27 +228,57 @@ def discriminator_model_arm(x, drop_rate=0.5):
 
 def fk_learner(x, drop_rate=0.5):
     x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 2048)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 2048)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 1024)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 1024)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 1024)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
     x = tf.layers.dense(x, 512)
     x = tf.layers.dropout(x, rate=drop_rate)
     x = tf.nn.relu(x)
 
     x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 256)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 128)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 256)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.relu(x)
-
-    x = tf.layers.batch_normalization(x)
     x = tf.layers.dense(x, 512)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 1024)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 1024)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 2048)
+    x = tf.layers.dropout(x, rate=drop_rate)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 2048)
     x = tf.layers.dropout(x, rate=drop_rate)
     x = tf.nn.relu(x)
 

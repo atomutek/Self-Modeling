@@ -600,7 +600,7 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
 
 
             # Training self model
-            env_learner.train(train, epochs, valid, saver=saver, save_str=datetime_str)
+            env_learner.train(train, epochs, valid=None, saver=saver, save_str=datetime_str)
             print('Trained Self Model')
 
         # Testing in this env

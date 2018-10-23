@@ -33,6 +33,8 @@ def run(**kwargs):
     elif kwargs['env'] == 'AntBulletEnv-v0':
         print('Environment \'AntBulletEnv-v0\' chosen')
         from test_planners import test_plan_walker as testing
+        import pybullet, pybullet_envs
+        pybullet.connect(pybullet.DIRECT)
         env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
     elif kwargs['env'] == 'spring-mass-v0':
         print('Environment \'spring-mass-v0\' chosen')
@@ -65,6 +67,18 @@ def run(**kwargs):
         print('VAE architecture chosen')
         from env_learners.vae_env_learner import VAEEnvLearner
         env_learner = VAEEnvLearner(env)
+    elif kwargs['arch'] == 'precogen':
+        print('PreCo Gen architecture chosen')
+        from env_learners.preco_gen_env_learner import PreCoGenEnvLearner
+        env_learner = PreCoGenEnvLearner(env)
+    elif kwargs['arch'] == 'preco':
+        print('PreCo architecture chosen')
+        from env_learners.preco_env_learner import PreCoEnvLearner
+        env_learner = PreCoEnvLearner(env)
+    elif kwargs['arch'] == 'precowae':
+        print('PreCo WAE architecture chosen')
+        from env_learners.preco_wae_env_learner import PreCoWAEEnvLearner
+        env_learner = PreCoWAEEnvLearner(env)
     elif kwargs['arch'] == 'ddpg':
         print('DDPG architecture chosen')
         from env_learners.ddpg_env_learner import DDPGEnvLearner
@@ -96,14 +110,15 @@ def run(**kwargs):
 
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--env', type=str, default='widowx_arm')
-    parser.add_argument('--arch', type=str, default='dnn')
+    parser.add_argument('--env', type=str, default='AntBulletEnv-v0')
+    parser.add_argument('--arch', type=str, default='preco')
     parser.add_argument('--loop', type=str, default='open')
     parser.add_argument('--nb-epochs', type=int, default=100)
-    parser.add_argument('--nb-train-episodes', type=int, default=0)
+    parser.add_argument('--nb-train-episodes', type=int, default=10)
     parser.add_argument('--nb-test-episodes', type=int, default=100)
     parser.add_argument('--show-model', dest='show_model', action='store_true')
-    parser.add_argument('--load', type=str, default='models/2018-08-18-07:31:09.ckpt')
+    parser.add_argument('--load', type=str, default=None)
+    # 'models/2018-09-16-11:32:53.ckpt' for precoVAE
     parser.set_defaults(show_model=False)
     args = parser.parse_args()
     dict_args = vars(args)

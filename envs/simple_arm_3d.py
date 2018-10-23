@@ -30,6 +30,7 @@ class SimpleArm(gym.Env):
         if not self.train:
             l.append(0)
             h.append(2*np.sum(self.r))
+
         self.observation_space = spaces.Box(
                                             low=np.array(l),
                                             high=np.array(h)
@@ -91,36 +92,50 @@ class SimpleArm(gym.Env):
         self.state = self.__get_obs__()
         return self.state
 
-    def step(self, action, save=True):
-        if save:
-            self.x += action
+    def step(self, action, save=True, obs_in=None):
+        if obs_in is None:
+            if save:
+                self.x += action
 
-            # Comment out for baseline
-            # self.x += np.random.normal(0, math.pi/90.0, size=self.x.size)
-            self.__clip_x__()
+                # Comment out for baseline
+                # self.x += np.random.normal(0, math.pi/90.0, size=self.x.size)
+                # self.__clip_x__()
 
-            self.y = self.__get_pos__(self.x)
-            self.iteration += 1
-            self.done = (self.iteration >= self.max_iter)
-            new_d = float(np.linalg.norm(self.y - self.target))
-            if self.iteration == 1:
-               self.reward = -new_d
+                self.y = self.__get_pos__(self.x)
+                self.iteration += 1
+                self.done = (self.iteration >= self.max_iter)
+                new_d = float(np.linalg.norm(self.y - self.target))
+                if self.iteration == 1:
+                   self.reward = -new_d
+                else:
+                    self.reward = self.d-new_d
+                # self.reward = np.sign(self.d-new_d)
+                if new_d == 0:
+                    print('Success')
+                #    self.reward = 1
+                    self.done = True
+                self.d = new_d
+                return self.__get_obs__(), self.reward, self.done, {}
             else:
-                self.reward = self.d-new_d
-            # self.reward = np.sign(self.d-new_d)
-            if new_d == 0:
-                print('Success')
-            #    self.reward = 1
-                self.done = True
-            self.d = new_d
-            return self.__get_obs__(), self.reward, self.done, {}
+                x_new = self.x+action
+                for i in range(self.x.size):
+                    while x_new[i] > math.pi: x_new[i] -= 2*math.pi
+                    while x_new[i] < -math.pi: x_new[i] += 2*math.pi
+                y_new = self.__get_pos__(x_new)
+                d_new = float(np.linalg.norm(self.y - self.target))
+                if not self.train:
+                    return np.concatenate([x_new, y_new, np.array([self.d])], axis=0), -d_new, False, {}
+                else:
+                    return np.concatenate([x_new, y_new], axis=0), -d_new, False, {}
         else:
-            x_new = self.x+action
-            for i in range(self.x.size):
+            tmp_x = obs_in[:-3]
+            tmp_y = obs_in[-3:]
+            x_new = tmp_x+action
+            for i in range(tmp_x.size):
                 while x_new[i] > math.pi: x_new[i] -= 2*math.pi
                 while x_new[i] < -math.pi: x_new[i] += 2*math.pi
             y_new = self.__get_pos__(x_new)
-            d_new = float(np.linalg.norm(self.y - self.target))
+            d_new = float(np.linalg.norm(tmp_y - self.target))
             if not self.train:
                 return np.concatenate([x_new, y_new, np.array([self.d])], axis=0), -d_new, False, {}
             else:

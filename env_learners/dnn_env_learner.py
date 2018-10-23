@@ -72,8 +72,6 @@ class DNNEnvLearner(EnvLearner):
         self.p_lambda = 1.0
         self.t_lambda = 0.0
 
-
-        """ WGAN-GP """
         self.n_d = 1
         self.epsilon = 0.01
         self.gp_lambda = 10
@@ -177,11 +175,11 @@ class DNNEnvLearner(EnvLearner):
         lGen = 0.0
         lDisc = 0.0
         for i in range(len(X)):
-            ls = self.sess.run([self.loss_seq], feed_dict={self.x_seq: X[i],
-                                                                                                    self.y_seq: S[i],
-                                                                                                    self.a_seq: A[i]
-                                                                                                    })
-            lC += ls
+            ls = self.sess.run([self.loss], feed_dict={self.x_seq: X[i],
+                                                           self.y_seq: S[i],
+                                                           self.a_seq: A[i]
+                                                          })
+            lC += ls[0]
         return 0,0, lC / len(X)
 
     def step(self, obs_in, action_in, episode_step, save=True, buff=None):
@@ -195,9 +193,9 @@ class DNNEnvLearner(EnvLearner):
         else:
             if buff is None:
                 buff = copy.copy(self.buffer)
-            if episode_step == 0:
-                buff = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
-            buff.append(np.array([np.concatenate([obs, action])]).flatten())
+                if episode_step == 0:
+                    buff = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
+                buff.append(np.array([np.concatenate([obs, action])]).flatten())
 
         if buff is not None:
             x = np.array([np.concatenate(buff).flatten()])
