@@ -18,7 +18,7 @@ from env_learners.preco_env_learner import PreCoEnvLearner
 from env_learners.preco_gen_env_learner import PreCoGenEnvLearner
 
 class LearnedAntWrapperRew(gym.Env):
-    def __init__(self, ant_env, env_learner=None, loop='closed'):
+    def __init__(self, ant_env, env_learner=None, loop='open'):
         self.env = ant_env
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
@@ -30,6 +30,7 @@ class LearnedAntWrapperRew(gym.Env):
 
         self.env_learner = env_learner
         self.loop = loop
+        print(str(self.loop)+' loop')
 
     def reset(self):
         obs = self.env.reset()
@@ -48,10 +49,12 @@ class LearnedAntWrapperRew(gym.Env):
             else:
                 pred_obs = self.env_learner.step(action_in=action, obs_in=self.new_obs, episode_step=self.frame)
 
-            obs_in, r, done, info = self.env.step(action)
+            info = {}
+            done = False
             if self.loop == 'open2':
                 self.new_obs = pred_obs
-            else:
+            elif self.loop == 'closed':
+                obs_in, r, done, info = self.env.step(action)
                 self.new_obs = obs_in
             obs = pred_obs
         else:
@@ -64,7 +67,7 @@ class LearnedAntWrapperRew(gym.Env):
     def render(self, mode='human'):
         self.env.render(mode)
 
-def train(num_timesteps, seed, model_path=None, load=None, self=None):
+def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None):
     from baselines.ppo1 import mlp_policy, pposgd_simple
     U.make_session(num_cpu=1).__enter__()
     def policy_fn(name, ob_space, ac_space):
@@ -115,7 +118,7 @@ def train(num_timesteps, seed, model_path=None, load=None, self=None):
             print('Model: ' + self + ' Restored')
             env_learner.initialize(sess, load=True)
 
-            env = LearnedAntWrapperRew(env_in, env_learner)
+            env = LearnedAntWrapperRew(env_in, env_learner, loop)
             env = RewScale(env, 100)
             print('Running for '+str(num_timesteps)+' steps')
             pi = pposgd_simple.learn(env, policy_fn,
@@ -151,16 +154,19 @@ def main():
     parser.add_argument('--load', default=None)
     parser.add_argument('--self', default=None)
     parser.add_argument('--seed', default=0)
-    parser.add_argument('--play', default=False)
+    parser.add_argument('--play', default=0)
     parser.add_argument('--num_timesteps', default=int(2e7))
+    parser.add_argument('--visualize', default=False)
+    parser.add_argument('--loop', default='open')
 
     args = parser.parse_args()
 
-    if not args.play:
+    if args.play < 1:
         # train the model
         # if args.load:
         #     train(num_timesteps=1, seed=args.seed)
-        train(num_timesteps=int(args.num_timesteps), seed=args.seed, model_path=args.model_path, load=args.load, self=args.self)
+        train(num_timesteps=int(args.num_timesteps), seed=args.seed, model_path=args.model_path, load=args.load,
+              self=args.self, loop=args.loop)
     else:
         # construct the model object, load pre-trained model and render
         pi = train(num_timesteps=1, seed=args.seed)
@@ -174,11 +180,11 @@ def main():
         # env = gym.make("AntBulletEnv-v0")
         ob = env.reset()
 
-
-        test_iters = 10
+        test_iters = int(args.play)
         i = 0
         pos = np.zeros(3)
         real_pos_chart = []
+        x_poses = []
         while i < test_iters:
             action = pi.act(stochastic=False, ob=ob)[0]
             ob, _, done, _ =  env.step(action)
@@ -187,28 +193,30 @@ def main():
             real_pos_chart.append(pos.copy())
             # pos += (ob[3:6]/0.3)/60
             if done:
-                print(pos)
+                print(str(i)+'/'+str(test_iters)+': '+str(pos))
                 ob = env.reset()
+                x_poses.append(pos[0])
                 pos = np.zeros(3)
                 i += 1
+                if args.visualize:
+                    from matplotlib import pyplot as plt
 
-                # from matplotlib import pyplot as plt
-                import math
-                # print(np.amax(acts, axis=0))
-                # print(np.amin(acts, axis=0))
+                    real_pos_chart = np.array(real_pos_chart)
+                    xr, yr, zr = np.hsplit(real_pos_chart, 3)
+                    plt.plot(xr, yr)
 
-                # real_pos_chart = np.array(real_pos_chart)
-                # xr, yr, zr = np.hsplit(real_pos_chart, 3)
-                # plt.plot(xr, yr)
-                #
-                # max_lim = 1.1*max(np.max(xr), np.max(yr))
-                # min_lim = 1.1*min(np.min(xr), np.min(yr))
-                # plt.xlim(min_lim, max_lim)
-                # plt.ylim(min_lim, max_lim)
-                # plt.show()
-                # plt.clf()
-                # real_pos_chart = []
+                    max_lim = 1.1*max(np.max(xr), np.max(yr))
+                    min_lim = 1.1*min(np.min(xr), np.min(yr))
+                    plt.xlim(min_lim, max_lim)
+                    plt.ylim(min_lim, max_lim)
+                    plt.show()
+                    plt.clf()
+                    real_pos_chart = []
 
+        x_poses = np.array(x_poses)
+        print('Mean: '+str(np.mean(x_poses)))
+        print('Median: '+str(np.median(x_poses)))
+        print('Stdev: '+str(np.std(x_poses)))
 
 
 if __name__ == '__main__':
