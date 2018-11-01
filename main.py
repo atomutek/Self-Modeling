@@ -36,6 +36,12 @@ def run(**kwargs):
         import pybullet, pybullet_envs
         pybullet.connect(pybullet.DIRECT)
         env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+    elif kwargs['env'] == 'AntBulletEnv-v0_active':
+        print('Environment \'AntBulletEnv-v0\' chosen')
+        from test_planners import test_plan_walker_active as testing
+        import pybullet, pybullet_envs
+        pybullet.connect(pybullet.DIRECT)
+        env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
     elif kwargs['env'] == 'spring-mass-v0':
         print('Environment \'spring-mass-v0\' chosen')
         from envs.spring_mass_env import SpringMassCrawler
@@ -114,7 +120,7 @@ def parse_args():
     parser.add_argument('--arch', type=str, default='preco')
     parser.add_argument('--loop', type=str, default='open')
     parser.add_argument('--nb-epochs', type=int, default=100)
-    parser.add_argument('--nb-train-episodes', type=int, default=10)
+    parser.add_argument('--nb-train-episodes', type=int, default=100)
     parser.add_argument('--nb-test-episodes', type=int, default=100)
     parser.add_argument('--show-model', dest='show_model', action='store_true')
     parser.add_argument('--load', type=str, default=None)

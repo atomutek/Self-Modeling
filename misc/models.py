@@ -226,6 +226,21 @@ def discriminator_model_arm(x, drop_rate=0.5):
         return tf.nn.sigmoid(x)
 
 
+def simple_fk_learner(x, drop_rate=0.5):
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 64)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 64)
+    x = tf.nn.relu(x)
+
+    x = tf.layers.batch_normalization(x)
+    x = tf.layers.dense(x, 2)
+
+    return tf.nn.tanh(x, 'output')
+
+
 def fk_learner(x, drop_rate=0.5):
     x = tf.layers.batch_normalization(x)
     x = tf.layers.dense(x, 2048)

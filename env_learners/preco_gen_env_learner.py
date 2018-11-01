@@ -20,46 +20,6 @@ def corrector(x, h=None):
     outputs, states = tf.nn.static_rnn(rnn_cell, x, initial_state=h, dtype=tf.float32)
     return outputs, states
 
-def encode_mean(x, out_dim, drop_rate=0.5):
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 512)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 256)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 128)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, out_dim)
-    return x
-
-def encode_var(x, out_dim, drop_rate=0.5):
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 512)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 256)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, 128)
-    x = tf.layers.dropout(x, rate=drop_rate)
-    x = tf.nn.leaky_relu(x)
-
-    x = tf.layers.batch_normalization(x)
-    x = tf.layers.dense(x, out_dim)
-    return x
-
 def decode(x, out_dim, drop_rate=0.5):
     x = tf.layers.batch_normalization(x, name='bn0')
     x = tf.layers.dense(x, 512, name='mlp0')
@@ -75,16 +35,6 @@ def decode(x, out_dim, drop_rate=0.5):
     x = tf.layers.dense(x, 128, name='mlp2')
     x = tf.layers.dropout(x, rate=drop_rate, name='do2')
     x = tf.nn.relu(x, name='rl2')
-
-    x = tf.layers.batch_normalization(x, name='bn3')
-    x = tf.layers.dense(x, 256, name='mlp3')
-    x = tf.layers.dropout(x, rate=drop_rate, name='do3')
-    x = tf.nn.relu(x, name='rl3')
-
-    x = tf.layers.batch_normalization(x, name='bn4')
-    x = tf.layers.dense(x, 512, name='mlp4')
-    x = tf.layers.dropout(x, rate=drop_rate, name='do4')
-    x = tf.nn.relu(x, name='rl4')
 
     x = tf.layers.batch_normalization(x, name='bn5')
     x = tf.layers.dense(x, out_dim, name='mlp5')

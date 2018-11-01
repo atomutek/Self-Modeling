@@ -14,8 +14,8 @@ def batch(data, batch_size):
     return batches
 
 if __name__ == '__main__':
-    # load = 'models/2018-10-01-20:58:39.ckpt'
-    load = None
+    load = 'models/2018-10-01-20:58:39.ckpt'
+    # load = None
 
     from envs.widowx_arm import WidowxROS
     env = WidowxROS()
@@ -146,17 +146,19 @@ if __name__ == '__main__':
             print(np.median(drifts))
             print(np.std(drifts))
             print('')
-            plt.clf()
-            drift_max = np.max(drifts)
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            for i in range(len(drifts)):
-                c = min(max(drifts[i]/drift_max, 0), 1)
-                ax.plot(xs=[reals[i][0], preds[i][0]],
-                        ys=[reals[i][1], preds[i][1]],
-                        zs=[reals[i][2], preds[i][2]],
-                        color=(0+c,1-c,0))
-            plt.show()
-            plt.clf()
+            # plt.clf()
+            # drift_max = np.max(drifts)
+            # fig = plt.figure()
+            # ax = fig.add_subplot(111, projection='3d')
+            # for i in range(len(drifts)):
+            #     c = min(max(drifts[i]/drift_max, 0), 1)
+            #     ax.plot(xs=[reals[i][0], preds[i][0]],
+            #             ys=[reals[i][1], preds[i][1]],
+            #             zs=[reals[i][2], preds[i][2]],
+            #             color=(0+c,1-c,0))
+            # plt.show()
+            # plt.clf()
+            drifts = 100*np.array(drifts)
             plt.hist(drifts, bins=100)
+            plt.ylabel('frequency')
             plt.show()

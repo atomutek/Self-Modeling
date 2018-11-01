@@ -129,3 +129,6 @@ class EnvLearner:
 
     def step(self, obs_in, action_in, episode_step, save=True, buff=None):
         pass
+
+    def next_move(self, obs_in, episode_step):
+        return np.random.uniform(-1, 1, self.act_dim)

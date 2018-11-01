@@ -12,6 +12,8 @@ pybullet.connect(pybullet.DIRECT)
 import numpy as np
 import tensorflow as tf
 
+from matplotlib import pyplot as plt
+
 from env_learners.dnn_env_learner import DNNEnvLearner
 from env_learners.preco_wae_env_learner import PreCoWAEEnvLearner
 from env_learners.preco_env_learner import PreCoEnvLearner
@@ -104,13 +106,14 @@ def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None)
         return pi
     else:
         env_in = AntWrapper(gym.make("AntBulletEnv-v0"))
-        env_learner = PreCoGenEnvLearner(env_in)
+        env_learner = PreCoEnvLearner(env_in)
         # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.45)
         gpu_options = None
-        num_cpu = 1
+        num_cpu = 4
         tf_config = tf.ConfigProto(
-            inter_op_parallelism_threads=num_cpu,
-            intra_op_parallelism_threads=num_cpu)
+            inter_op_parallelism_threads=num_cpu)
+
+        tf_config.gpu_options.allow_growth = True
 
         with tf.Session(config=tf_config) as sess:
             saver = tf.train.Saver()
@@ -146,13 +149,43 @@ class RewScale(gym.RewardWrapper):
     def reward(self, r):
         return r * self.scale
 
+# Doesn't seem to work, returns all white
+def get_image_from_env():
+    cam_dist = 3
+    cam_yaw = 0
+    cam_pitch = -30
+    cam_roll=0
+    render_width =320
+    render_height = 240
+    upAxisIndex = 2
+    nearPlane = 0.01
+    farPlane = 100
+    camTargetPos = [0,0,0]
+    fov = 60
+    pybullet.connect(pybullet.DIRECT)
+    start = time.time()
+    viewMatrix = pybullet.computeViewMatrixFromYawPitchRoll(camTargetPos, cam_dist, cam_yaw, cam_pitch, cam_roll, upAxisIndex)
+    aspect = render_width / render_height
+    projectionMatrix = pybullet.computeProjectionMatrixFOV(fov, aspect, nearPlane, farPlane)
+    img_arr = pybullet.getCameraImage(render_width, render_height, viewMatrix,projectionMatrix, shadow=1,lightDirection=[1,1,1],renderer=pybullet.ER_BULLET_HARDWARE_OPENGL)
+    stop = time.time()
+
+    w=img_arr[0] #width of the image, in pixels
+    h=img_arr[1] #height of the image, in pixels
+    rgb=img_arr[2] #color data RGB
+    dep=img_arr[3] #depth data
+    print('Imshow start!')
+    plt.imshow(rgb)
+    plt.pause(0.5)
+    print('Imshow end!')
+
 def main():
     # screen -r 2 == closed
     # screen -r 1 == Real
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--model-path', default='models/ant_policy')
     parser.add_argument('--load', default=None)
-    parser.add_argument('--self', default=None)
+    parser.add_argument('--self', default='models/2018-10-29-00:26:01.ckpt')
     parser.add_argument('--seed', default=0)
     parser.add_argument('--play', default=0)
     parser.add_argument('--num_timesteps', default=int(2e7))
@@ -177,7 +210,8 @@ def main():
 
         # env = WidowxROS(test=True)
         env = AntWrapper(gym.make("AntBulletEnv-v0"))
-        # env = gym.make("AntBulletEnv-v0")
+        if args.visualize:
+            a = env.render(mode="human")
         ob = env.reset()
 
         test_iters = int(args.play)
@@ -185,21 +219,45 @@ def main():
         pos = np.zeros(3)
         real_pos_chart = []
         x_poses = []
+        n = 0
+        import pickle as pkl
+        acts = pkl.load(open('acts.pkl','r'))
         while i < test_iters:
-            action = pi.act(stochastic=False, ob=ob)[0]
+            # action = pi.act(stochastic=False, ob=ob)[0]
+            action = acts[n]
+            # action = np.random.uniform(-1, 1, env.action_space.shape[0])
+            acts.append(action)
             ob, _, done, _ =  env.step(action)
+            if args.visualize:
+                im = env.render('rgb_array')
+                import cv2
+                cv2.imwrite('open_walk_'+str(n)+'.png', im)
+            n += 1
+
+            time.sleep(0.0001)
             # env.render()
             pos += (ob[0:3]/0.3)/60
             real_pos_chart.append(pos.copy())
             # pos += (ob[3:6]/0.3)/60
             if done:
-                print(str(i)+'/'+str(test_iters)+': '+str(pos))
+                print(str(i)+'/'+str(test_iters)+' in '+str(n)+' steps: '+str(pos))
+
+                if pos[0] > 3:
+                    import pickle as pkl
+
+                    pkl.dump(acts, open('acts.pkl', 'w'))
+                    exit(0)
+
+                n = 0
+                acts = []
                 ob = env.reset()
+
+
+                # plt.imshow(im)
                 x_poses.append(pos[0])
                 pos = np.zeros(3)
                 i += 1
                 if args.visualize:
-                    from matplotlib import pyplot as plt
 
                     real_pos_chart = np.array(real_pos_chart)
                     xr, yr, zr = np.hsplit(real_pos_chart, 3)

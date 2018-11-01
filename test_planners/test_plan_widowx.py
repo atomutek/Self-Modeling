@@ -452,14 +452,13 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
     num_cpu = 1
     if gpu_options is None:
         tf_config = tf.ConfigProto(
-            inter_op_parallelism_threads=num_cpu,
-            intra_op_parallelism_threads=num_cpu)
+            inter_op_parallelism_threads=num_cpu)
     else:
         tf_config = tf.ConfigProto(
             inter_op_parallelism_threads=num_cpu,
-            intra_op_parallelism_threads=num_cpu,
             gpu_options=gpu_options)
 
+    tf_config.gpu_options.allow_growth = True
     episode_duration = -1
     nb_valid_episodes = 50
     episode_step = 0

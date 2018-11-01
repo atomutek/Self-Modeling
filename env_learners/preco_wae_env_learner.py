@@ -60,7 +60,7 @@ class PreCoWAEEnvLearner(EnvLearner):
 
         self.latent_size = 1024
         self.last_r = np.array([0.0]).flatten()
-        self.buffer = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
+        # self.buffer = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
         dropout_rate = 0.5
         lr = 1e-5
         print('General Stats: ')
@@ -140,7 +140,6 @@ class PreCoWAEEnvLearner(EnvLearner):
 
     ## WAE
     # Adapted From: https://github.com/tolstikhin/wae
-    # Note to self, make this a seperate function as it's too complex here
     # res = encoder(inputs=sample_points, is_training=self.is_training)
     def wae_loss(self, res, sample_points):
         # if self.e_noise in ('deterministic', 'implicit', 'add_noise'):
@@ -193,6 +192,7 @@ class PreCoWAEEnvLearner(EnvLearner):
         # else:
         #     assert False, 'Unknown penalty %s' % opts['z_test']
         return loss_match, loss_gan
+
     def mmd_penalty(self, sample_qz, sample_pz):
         # opts = self.opts
         sigma2_p = self.pz_scale ** 2

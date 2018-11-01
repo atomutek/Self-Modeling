@@ -36,9 +36,9 @@ def main():
     pybullet.connect(pybullet.DIRECT)
     env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
     # env.render(mode="human")
-    
     pi = SmallReactivePolicy(env.observation_space, env.action_space)
     # env.reset()
+
 
     # load = 'models/2018-09-10-18:16:02.ckpt'
     # load = 'models/2018-09-11-13:05:18.ckpt'
@@ -49,7 +49,7 @@ def main():
     # load = 'models/2018-09-19-13:04:35.ckpt' # 100K Scaled to 7 PreCoGen
     # load = 'models/2018-09-19-21:44:22.ckpt' # 100K Scaled to 7 DNN
     # load = 'models/2018-09-19-21:30:31.ckpt' # 1M Scaled to 7 PreCoGen
-    load = 'models/2018-09-21-11:55:08.ckpt' # 100K Scaled to 7 PreCoGen # Best
+    # load = 'models/2018-09-21-11:55:08.ckpt' # 100K Scaled to 7 PreCoGen # Best
     # load = 'models/2018-09-21-11:48:31.ckpt' # 100K Scaled to 7 PreCoGen Seq=100
     # load = 'models/2018-09-24-10:11:51.ckpt' # 100K Scaled to 7 PreCoGen Seq=300 (50 epochs)
     # load = 'models/2018-09-25-02:21:31.ckpt' # 100K Scaled to 7 PreCoGen Seq=300 (100 epochs)
@@ -58,13 +58,18 @@ def main():
     # load = 'models/2018-10-16-22:58:09.ckpt' # Preco Seq=300 100 Epochs
     # load = 'models/2018-10-16-23:17:02.ckpt' # Preco Seq=30
     # load = 'models/2018-10-17-12:06:32.ckpt' # PrecoWAE Seq=30
+    # load = 'models/2018-10-25-10:44:38.ckpt'
+    # load = 'models/2018-10-27-22:26:33.ckpt' # New Preco losses Seq=30
+    load = 'models/2018-10-29-00:26:01.ckpt' # New Preco with proper MDN 16 components seq 30
+    # load = 'models/2018-10-29-00:46:05.ckpt' # New PrecoWAE Seq=30
+    # load = 'models/2018-10-30-10:58:07.ckpt' # New Preco 32 Components Seq 60
 
     import datetime
     import tensorflow as tf
-
     # env_learner = DNNEnvLearner(env)
-    # env_learner = PreCoEnvLearner(env)
-    env_learner = PreCoGenEnvLearner(env)
+    # time.sleep(1000)
+    env_learner = PreCoEnvLearner(env)
+    # env_learner = PreCoGenEnvLearner(env)
     # env_learner = PreCoWAEEnvLearner(env)
     saver = tf.train.Saver()
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.45)

@@ -112,24 +112,6 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
             env_learner.initialize(sess)
             # sess.graph.finalize()
             i = 0
-            while i < train_episodes:
-                action = np.random.uniform(-1, 1, env.action_space.shape[0])
-                new_obs, r, done, info = env.step(max_action * action)
-                # if episode_duration > 0:
-                #     done = (done or (episode_step >= episode_duration))
-                train.append([obs, max_action * action, r, new_obs, done, episode_step])
-                episode_step += 1
-                obs = new_obs
-
-                episode_reward += r
-                if done:
-                    episode_step = 0.0
-                    obs = env.reset()
-                    max_ep_rew = max(max_ep_rew, episode_reward)
-                    episode_reward = 0.0
-                    print(len(train))
-                    i += 1
-            i = 0
             while i < nb_valid_episodes:
                 action = np.random.uniform(-1, 1, env.action_space.shape[0])
                 new_obs, r, done, info = env.step(max_action * action)
@@ -145,11 +127,57 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
                     max_ep_rew = max(max_ep_rew, episode_reward)
                     episode_reward = 0.0
                     i += 1
+            i = 0
+
+            train_batch_size = 1000
+            max_steps = train_episodes*1000
+            update_interval = 2*max_steps/epochs
+
+            epoch = 0
+
+            while len(train) < max_steps:
+                action = env_learner.next_move(obs, episode_step)
+                new_obs, r, done, info = env.step(max_action * action)
+                train.append([obs, max_action * action, r, new_obs, done, episode_step])
+                episode_step += 1
+                obs = new_obs
+
+                episode_reward += r
+                if done:
+                    episode_step = 0.0
+                    obs = env.reset()
+                    max_ep_rew = max(max_ep_rew, episode_reward)
+                    episode_reward = 0.0
+                    print(len(train))
+                    i += 1
+
+                if len(train) % update_interval == 0 and len(train) > 0:
+                    epoch += 1
+                    train_subst = []
+                    scores = []
+
+                    for i in range(len(train)):
+                        scores.append( (env_learner.uncertainty(train[i][1]/max_action, train[i][0]), i) )
+                    scores.sort(key=lambda tup: tup[0])
+                    for i in range(min(train_batch_size, len(scores))):
+                        train_subst.append(train[scores[i][1]])
+
+
+                    start = time.time()
+                    for i in range(10):
+                        (single, seq, corr, MSE) = env_learner.train_epoch(train_subst)
+                    duration = time.time() - start
+                    print('Epoch: ' + str(epoch) + '/' + str(epochs) + ' in ' + str(duration) + 's')
+                    print('Train Single: ' + str(single))
+                    print('Train Single MSE: ' + str(MSE))
+                    print('Train Seq: ' + str(seq))
+                    print('Train Corr: ' + str(corr))
+                    print('')
 
             print('Train Size: ' + str(len(train)))
             print('Valid Size: ' + str(len(valid)))
 
-            env_learner.train(train, epochs, valid, saver=saver, save_str=datetime_str, verbose=True)
+            env_learner.train(train, epochs-epoch, valid, saver=saver, save_str=datetime_str, verbose=True)
             print('Trained Self Model')
         else:
             i=0
