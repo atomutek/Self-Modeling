@@ -13,6 +13,8 @@ from env_learners.dnn_env_learner import DNNEnvLearner
 from env_learners.preco_wae_env_learner import PreCoWAEEnvLearner
 from env_learners.preco_env_learner import PreCoEnvLearner
 from env_learners.preco_gen_env_learner import PreCoGenEnvLearner
+from test_planners.test_plan_walker import AntWrapper
+from test_planners.test_plan_walker_active import RealerAntWrapper
 
 def relu(x):
     return np.maximum(x, 0)
@@ -32,9 +34,9 @@ class SmallReactivePolicy:
         return x
 
 def main():
-    from test_planners import test_plan_walker as testing
     pybullet.connect(pybullet.DIRECT)
-    env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+    # env = RealerAntWrapper(gym.make("AntBulletEnv-v0"))
+    env = AntWrapper(gym.make("AntBulletEnv-v0"))
     # env.render(mode="human")
     pi = SmallReactivePolicy(env.observation_space, env.action_space)
     # env.reset()
@@ -59,17 +61,70 @@ def main():
     # load = 'models/2018-10-16-23:17:02.ckpt' # Preco Seq=30
     # load = 'models/2018-10-17-12:06:32.ckpt' # PrecoWAE Seq=30
     # load = 'models/2018-10-25-10:44:38.ckpt'
-    # load = 'models/2018-10-27-22:26:33.ckpt' # New Preco losses Seq=30
-    load = 'models/2018-10-29-00:26:01.ckpt' # New Preco with proper MDN 16 components seq 30
+    # load = 'models/2018-10-27-22:26:33.ckpt' # New Preco losses Seq=30 components 2
+    # load = 'models/2018-10-29-00:26:01.ckpt' # New Preco with proper MDN 16 components seq 30
     # load = 'models/2018-10-29-00:46:05.ckpt' # New PrecoWAE Seq=30
-    # load = 'models/2018-10-30-10:58:07.ckpt' # New Preco 32 Components Seq 60
+    # load = 'models/2018-11-01-17:49:26.ckpt' # First 70 Epochs of 'models/2018-11-02-15:51:16.ckpt'
+    # load = 'models/2018-11-02-15:51:16.ckpt' # New Preco Seq 30 Comp 32 (last 30 epochs)
+    # load = 'models/2018-11-02-15:49:56.ckpt' # Preco len 30 components 16 active
+    # load = 'models/2018-11-02-15:52:08.ckpt' # Preco len 60 components 16 regular
+    # load = 'models/2018-11-02-23:54:17.ckpt' # Preco len 30 components 32 (good for closed really bad in open)
+    # load = 'models/2018-11-03-18:40:40.ckpt' # Preco Len 30 Components 16 seq loss scaled to 1
+
+    # load = 'models/2018-11-03-11:34:10.ckpt' # Precogen Len 30 Components 16 Active (80/100)
+    # load = 'models/2018-11-04-10:22:52.ckpt' # Precogen Len 30 Components 16 Regular (90/100)
+
+    # load = 'models/2018-11-04-16:43:57.ckpt' # PrecoGen Len 30 Components 8 Regular
+    # load = 'models/2018-11-04-16:49:01.ckpt' # PrecoGen Len 30 Components 8 Active (seems to be the new best)
+
+    # load = 'models/2018-11-07-17:27:42.ckpt' # PrecoGen Len 30 Components 8 active 512->256->128 repeated
+    # load = 'models/2018-11-07-17:27:15.ckpt' # PrecoGen len 30 components 16 shared preco->512->256 seperate 128
+    # load = 'models/2018-11-08-20:42:42.ckpt' # PrecoGen Len 30 Components 16 active 512->256->128 repeated
+
+    # load = 'models/2018-11-08-20:55:03.ckpt' # DNN
+    # load = 'models/2018-11-10-11:00:46.ckpt' # PrecoGen len 60 comp 8 unsplit 512->256 split 128 active
+    # load = 'models/2018-11-11-13:11:17.ckpt' # PrecoGen len 60 comp 8 unsplit 512->256 split 128
+    # load = 'models/2018-11-11-15:23:53.ckpt' # PrecoGen Realer env (no foot contacts) len 30 components 8 shared preco->512->256 split 128 active
+
+    # load = 'models/2018-11-12-13:57:13.ckpt' # PrecoGen just xyz len 30 components 8 shared preco 512->256 seperate 128
+    # load = 'models/2018-11-12-13:56:57.ckpt' # PrecoGen just xyz+roll+pitch len 30 components 8 shared preco 512->256 seperate 128
+    # load = 'models/2018-11-13-13:47:48.ckpt' # PrecoGen xyz+r+p+positions len 30 components 8 shared preco 512->256 seperate 128
+    # load = 'models/2018-11-13-00:05:19.ckpt' # PrecoGen len 100 components 8 shared 512->512->256-> separate 128->128 regular
+
+    # load = 'models/2018-11-16-13:03:35.ckpt' # PrecoGen xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128 active
+    # load = 'models/2018-11-16-13:17:39.ckpt' # PrecoGen xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128 corrected loss active
+
+    # load = 'models/2018-11-16-13:17:30.ckpt' # PrecoGen xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128 corrected loss # best in PPO
+    # load = 'models/2018-11-16-13:03:36.ckpt' # PrecoGen xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128
+    # load = 'models/2018-11-17-22:46:39.ckpt'
+
+
+    # load = 'models/2018-11-18-11:03:43.ckpt' # PrecoGen len 30 components 8 shared preco 512->256 seperate 128 corrected loss averaged good next ppo candidate
+
+    # load = 'models/2018-11-18-00:23:35.ckpt' # xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128 last only
+    # load = 'models/2018-11-18-00:23:55.ckpt' # xyz+r+p+positions len 100 components 8 shared preco 512->256 seperate 128 corrected loss seq avg
+
+    # load = 'models/2018-11-19-23:17:29.ckpt' # xyz+r+p+positions precogen len 500 comp 8 100K examples regular
+    # load = 'models/2018-11-19-23:14:36.ckpt' # xyz+r+p+positions precogen len 100 comp 8 500K examples regular
+
+    # load = 'models/2018-11-25-12:44:20.ckpt' # PrecoGen len 100 components 8 shared preco 512->256 seperate 128 corrected loss averaged
+    # load = 'models/2018-11-25-12:49:34.ckpt' # PrecoGen len 100 components 8 shared preco 512->256 seperate 128 corrected loss averaged active better than reg
+
+    # load = 'models/2018-11-26-11:14:35.ckpt' # seq 60 comp 8 joint loss regular
+    # load = 'models/2018-11-26-11:14:27.ckpt' # seq 60 comp 8 joint loss active
+
+    # load = 'models/2018-11-27-13:19:59.ckpt' # new simple precogen len 60 comp 2 std arch active
+    # load = 'models/2018-11-27-13:19:28.ckpt' # new simple precogen len 60 comp 1 std arch
+
+    # load = 'models/2018-11-27-02:08:16.ckpt' # Precogen 80/100 x+y+z+r+p+positions new simple precogen len 60 comp 8 std arch
+    # load = 'models/2018-11-27-02:08:24.ckpt' #  PrecoGen 80/100 new simple precogen len 60 comp 8 std arch
 
     import datetime
     import tensorflow as tf
     # env_learner = DNNEnvLearner(env)
     # time.sleep(1000)
-    env_learner = PreCoEnvLearner(env)
-    # env_learner = PreCoGenEnvLearner(env)
+    # env_learner = PreCoEnvLearner(env)
+    env_learner = PreCoGenEnvLearner(env)
     # env_learner = PreCoWAEEnvLearner(env)
     saver = tf.train.Saver()
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.45)
@@ -78,9 +133,9 @@ def main():
     tf_config = tf.ConfigProto(
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
+    tf_config.gpu_options.allow_growth = True
 
-    loop = 'closed'
-
+    loop = 'open'
 
     with tf.Session(config=tf_config) as sess:
         sess_start = time.time()
@@ -97,37 +152,70 @@ def main():
             restart_delay = 0
             obs = env.reset_raw()
             new_obs = obs[3:]
+            # new_obs = np.concatenate([obs[3:3+4], obs[3+4::2][:-4/2]])
             env_learner.reset(new_obs)
             real_pos = np.zeros(3)
+            tmp_pos = np.zeros(3)
             pred_pos = np.zeros(3)
             pred_pos_chart = []
             real_pos_chart = []
             frames = []
             drifts = []
             acts = []
-            while 1:
-                time.sleep(1./60.)
-                a = pi.act(obs)
 
+            pred_pos_charts = []
+            pred_poses = []
+
+            while 1:
+                # time.sleep(1./60.)
+
+                a = pi.act(obs)
                 # a = np.random.uniform(-1, 1, env.action_space.shape[0])
+
                 acts.append(a)
                 if loop == 'open':
-                    pred_obs = env_learner.step(action_in=a, episode_step=frame)
+                    pred_obs = env_learner.step(action_in=a, episode_step=frame, num=-1)
                 elif loop == 'closed' or loop == 'open2':
                     pred_obs = env_learner.step(action_in=a, obs_in=new_obs, episode_step=frame)
-                obs, r, done, _ = env.step_raw(a)
-                # Different x,y,z velocities
-                real_pos += (obs[3:6]/0.3)/60
-                pred_pos += (pred_obs[0:3]/0.3)/60
+                    # pred_obs = new_obs
 
-                pred_pos_chart.append(pred_pos.copy())
+                if len(pred_obs.shape) > 1 and len(real_pos_chart) == 0:
+                    for _ in range(pred_obs.shape[0]):
+                        pred_pos_charts.append([])
+                        pred_poses = np.zeros((pred_obs.shape[0], 3))
+
+                obs, r, done, _ = env.step_raw(a)
+
+                corr_obs = obs[3:]
+                # corr_obs =  np.concatenate([obs[3:3+4], obs[3+4::2][:-4/2]])
+
+                # Different x,y,z velocities
+                # tmp_pos += (obs[3:6]/0.3)/60
+                real_pos += (corr_obs[0:3]/0.3)/60
                 real_pos_chart.append(real_pos.copy())
                 frames.append(frame)
-                drift = np.linalg.norm(real_pos[:2]-pred_pos[:2])
-                drifts.append(drift)
-                print('Real Pos: '+str(real_pos))
-                print('Pred Pos: '+str(pred_pos))
-                print(str(frame)+' Drift: '+str(drift))
+                print(str(frame)+': Real Pos: '+str(real_pos))
+
+                if len(pred_obs.shape) == 1:
+                    pred_pos += (pred_obs[0:3]/0.3)/60
+                    pred_pos_chart.append(pred_pos.copy())
+
+                    drift = np.linalg.norm(real_pos[:2]-pred_pos[:2])
+                    drifts.append(drift)
+                    state_diff = corr_obs-pred_obs
+                    print('Drift: '+str(drift))
+                    print('State Diff: '+str(np.linalg.norm(state_diff)))
+                    print('Pred Pos: '+str(pred_pos))
+                    print('')
+
+                else:
+                    pred_poses += (pred_obs[:,0:3]/0.3)/60
+                    for k in range(pred_obs.shape[0]):
+                        pred_pos_charts[k].append(pred_poses[k].copy())
+                        print('Pred '+str(k)+': '+str(pred_poses[k]))
+                    print('')
+
+
                 # print(obs[3:]-pred_obs)
                 #print("reward")
                 #print(r)
@@ -151,8 +239,6 @@ def main():
                 else:
                     restart_delay -= 1
                     if restart_delay==0: break
-            real_pos_chart = np.array(real_pos_chart)
-            pred_pos_chart = np.array(pred_pos_chart)
 
             from matplotlib import pyplot as plt
             import math
@@ -161,10 +247,25 @@ def main():
             # print(np.amax(acts, axis=0))
             # print(np.amin(acts, axis=0))
 
+            real_pos_chart = np.array(real_pos_chart)
             xr, yr, zr = np.hsplit(real_pos_chart, 3)
             plt.plot(xr, yr)
-            xp, yp, zp = np.hsplit(pred_pos_chart, 3)
-            plt.plot(xp, yp)
+            if len(pred_pos_charts) == 0:
+                pred_pos_chart = np.array(pred_pos_chart)
+                xp, yp, zp = np.hsplit(pred_pos_chart, 3)
+                plt.plot(xp, yp, color='black')
+            else:
+                xp = []
+                yp = []
+                zp = []
+                for k in range(len(pred_pos_charts)):
+                    tmp_pos_chart = np.array(pred_pos_charts[k])
+                    tmp_xp, tmp_yp, tmp_zp = np.hsplit(tmp_pos_chart, 3)
+                    plt.plot(tmp_xp, tmp_yp)
+                    xp.extend(tmp_xp)
+                    yp.extend(tmp_yp)
+                    zp.extend(tmp_zp)
+
             max_lim = 1.1*max(np.max(xr), np.max(yr),np.max(xp),np.max(yp))
             min_lim = 1.1*min(np.min(xr), np.min(yr),np.min(xp),np.min(yp))
             plt.xlim(min_lim, max_lim)

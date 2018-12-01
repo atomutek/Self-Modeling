@@ -3,6 +3,7 @@ import os
 from baselines.common import tf_util as U
 from envs.widowx_arm import WidowxROS
 from test_planners.test_plan_walker import AntWrapper
+from test_planners.test_plan_walker_active import RealerAntWrapper
 
 import time,datetime, math, argparse
 import gym
@@ -69,7 +70,7 @@ class LearnedAntWrapperRew(gym.Env):
     def render(self, mode='human'):
         self.env.render(mode)
 
-def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None):
+def train(env_in, num_timesteps, seed, model_path=None, load=None, self=None, loop=None):
     from baselines.ppo1 import mlp_policy, pposgd_simple
     U.make_session(num_cpu=1).__enter__()
     def policy_fn(name, ob_space, ac_space):
@@ -79,7 +80,7 @@ def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None)
     # env = WidowxROS(test=True)
 
     if self is None:
-        env_in = AntWrapper(gym.make("AntBulletEnv-v0"))
+        env_in = RealerAntWrapper(gym.make("AntBulletEnv-v0"))
         print('Running for '+str(num_timesteps)+' steps')
         # parameters below were the best found in a simple random search
         # these are good enough to make humanoid walk, but whether those are
@@ -105,8 +106,8 @@ def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None)
 
         return pi
     else:
-        env_in = AntWrapper(gym.make("AntBulletEnv-v0"))
-        env_learner = PreCoEnvLearner(env_in)
+        # env_in = AntWrapper(gym.make("AntBulletEnv-v0"))
+        env_learner = PreCoGenEnvLearner(env_in)
         # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.45)
         gpu_options = None
         num_cpu = 4
@@ -133,7 +134,7 @@ def train(num_timesteps, seed, model_path=None, load=None, self=None, loop=None)
                     optim_batchsize=64,
                     gamma=0.99,
                     lam=0.95,
-                    schedule='linear',load=load
+                    schedule='linear'
                 )
             env.close()
             if model_path:
@@ -179,13 +180,51 @@ def get_image_from_env():
     plt.pause(0.5)
     print('Imshow end!')
 
+def draw_ant():
+    import matplotlib.patches as mpatches
+
+    c = 'r'
+
+    body = plt.Circle((0, 0), 0.1, color=c)
+
+    foot1 = plt.Circle((0.848528137, 0.), 0.025, color=c)
+    foot2 = plt.Circle((-0.848528137, 0.), 0.025, color=c)
+    foot3 = plt.Circle((0., 0.848528137), 0.025, color=c)
+    foot4 = plt.Circle((0., -0.848528137), 0.025, color=c)
+
+    fig, ax = plt.subplots()
+
+    h = 0.05
+    leg1 = mpatches.Rectangle([0,-h/2], width=0.848528137, height=h, angle=0, color=c)
+    leg2 = mpatches.Rectangle([h/2, 0], width=0.848528137, height=h, angle=90, color=c)
+    leg3 = mpatches.Rectangle([0,h/2], width=0.848528137, height=h, angle=180, color=c)
+    leg4 = mpatches.Rectangle([-h/2, 0], width=0.848528137, height=h, angle=-90, color=c)
+
+    ax.set_xlim([-1,1])
+    ax.set_ylim([-1,1])
+    ax.add_artist(leg1)
+    ax.add_artist(leg2)
+    ax.add_artist(leg3)
+    ax.add_artist(leg4)
+    ax.add_artist(foot1)
+    ax.add_artist(foot2)
+    ax.add_artist(foot3)
+    ax.add_artist(foot4)
+    ax.add_artist(body)
+    return ax, fig
+
+
+# 'models/ant_policy-2018-11-06-17:24:08' # ppo trained on precogen models/2018-11-04-16:49:01.ckpt with mean 0.32
+# 'models/ant_policy-2018-11-10-19:39:48' # ppo trained on dnn 'models/2018-11-08-20:55:03.ckpt' 0.44
+# 'models/2018-11-16-13:17:30.ckpt' # ppo trained on precogen 'models/2018-11-16-13:17:30.ckpt' with mean 0.77
+
 def main():
     # screen -r 2 == closed
     # screen -r 1 == Real
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--model-path', default='models/ant_policy')
     parser.add_argument('--load', default=None)
-    parser.add_argument('--self', default='models/2018-10-29-00:26:01.ckpt')
+    parser.add_argument('--self', default=None)
     parser.add_argument('--seed', default=0)
     parser.add_argument('--play', default=0)
     parser.add_argument('--num_timesteps', default=int(2e7))
@@ -193,25 +232,25 @@ def main():
     parser.add_argument('--loop', default='open')
 
     args = parser.parse_args()
+    env = RealerAntWrapper(gym.make("AntBulletEnv-v0"))
 
     if args.play < 1:
         # train the model
         # if args.load:
         #     train(num_timesteps=1, seed=args.seed)
-        train(num_timesteps=int(args.num_timesteps), seed=args.seed, model_path=args.model_path, load=args.load,
+        train(env_in=env, num_timesteps=int(args.num_timesteps), seed=args.seed, model_path=args.model_path, load=args.load,
               self=args.self, loop=args.loop)
     else:
         # construct the model object, load pre-trained model and render
-        pi = train(num_timesteps=1, seed=args.seed)
+        pi = train(env, num_timesteps=1, seed=args.seed)
         if args.load is None:
             U.load_state(args.model_path)
         else:
             U.load_state(args.load)
 
         # env = WidowxROS(test=True)
-        env = AntWrapper(gym.make("AntBulletEnv-v0"))
-        if args.visualize:
-            a = env.render(mode="human")
+        # if args.visualize:
+        #     a = env.render(mode="human")
         ob = env.reset()
 
         test_iters = int(args.play)
@@ -221,12 +260,12 @@ def main():
         x_poses = []
         n = 0
         import pickle as pkl
-        acts = pkl.load(open('acts.pkl','r'))
+        # acts = pkl.load(open('acts.pkl','r'))
         while i < test_iters:
-            # action = pi.act(stochastic=False, ob=ob)[0]
-            action = acts[n]
+            action = pi.act(stochastic=False, ob=ob)[0]
+            # action = acts[n]
             # action = np.random.uniform(-1, 1, env.action_space.shape[0])
-            acts.append(action)
+            # acts.append(action)
             ob, _, done, _ =  env.step(action)
             if args.visualize:
                 im = env.render('rgb_array')
@@ -237,16 +276,17 @@ def main():
             time.sleep(0.0001)
             # env.render()
             pos += (ob[0:3]/0.3)/60
+            # print('\nStep: '+str(n)+'\nAction: '+str(action)+'\nPos: '+str(pos))
             real_pos_chart.append(pos.copy())
             # pos += (ob[3:6]/0.3)/60
             if done:
                 print(str(i)+'/'+str(test_iters)+' in '+str(n)+' steps: '+str(pos))
 
-                if pos[0] > 3:
-                    import pickle as pkl
+                # if pos[0] > 3:
+                #     import pickle as pkl
 
-                    pkl.dump(acts, open('acts.pkl', 'w'))
-                    exit(0)
+                    # pkl.dump(acts, open('acts.pkl', 'w'))
+                    # exit(0)
 
                 n = 0
                 acts = []
@@ -259,16 +299,28 @@ def main():
                 i += 1
                 if args.visualize:
 
-                    real_pos_chart = np.array(real_pos_chart)
-                    xr, yr, zr = np.hsplit(real_pos_chart, 3)
-                    plt.plot(xr, yr)
-
-                    max_lim = 1.1*max(np.max(xr), np.max(yr))
-                    min_lim = 1.1*min(np.min(xr), np.min(yr))
-                    plt.xlim(min_lim, max_lim)
-                    plt.ylim(min_lim, max_lim)
+                    # real_pos_chart = np.array(real_pos_chart)
+                    # ax, fig = draw_ant()
+                    # xr, yr, zr = np.hsplit(real_pos_chart, 3)
+                    # ax.plot(xr, yr)
+                    #
+                    # max_lim = 1.1*max(np.max(xr), np.max(yr), 1)
+                    # min_lim = 1.1*min(np.min(xr), np.min(yr))
+                    # # plt.xlim(min_lim, max_lim)
+                    # # plt.ylim(min_lim, max_lim)
+                    # ax.set_xlim([-max_lim, max_lim])
+                    # ax.set_ylim([-max_lim, max_lim])
+                    # fig.show()
+                    # plt.show()
+                    # # plt.clf()
+                    # # plt.cla()
+                    # # plt.close(fig)
+                    # plt.clf()
+                    idx = np.arange(len(real_pos_chart))
+                    val = np.array(real_pos_chart)[:,0]
+                    plt.plot(idx, val)
+                    plt.plot([100, 100], [min(val),val[100]])
                     plt.show()
-                    plt.clf()
                     real_pos_chart = []
 
         x_poses = np.array(x_poses)

@@ -12,9 +12,9 @@ class DNNEnvLearner(EnvLearner):
     def __init__(self, env_in):
         EnvLearner.__init__(self, env_in)
         # Initialization
-        self.buff_len = 10
-        self.seq_len = 5
-        self.max_seq_len = 5
+        self.buff_len = 30
+        self.seq_len = 30
+        self.max_seq_len = 30
         self.last_r = np.array([0.0]).flatten()
         self.buffer = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
         dropout_rate = 0.5
@@ -182,7 +182,7 @@ class DNNEnvLearner(EnvLearner):
             lC += ls[0]
         return 0,0, lC / len(X)
 
-    def step(self, obs_in, action_in, episode_step, save=True, buff=None):
+    def step(self, obs_in, action_in, episode_step, save=True, buff=None, num=None):
         import copy
         obs = obs_in/self.state_mul_const
         action = action_in/self.act_mul_const

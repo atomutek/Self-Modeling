@@ -8,7 +8,7 @@ import tensorflow as tf
 from gym import spaces
 
 
-class AntWrapper(gym.Env):
+class RealerAntWrapper(gym.Env):
     def __init__(self, ant_env):
         self.env = ant_env
         # self.env.render(mode="human")
@@ -17,20 +17,44 @@ class AntWrapper(gym.Env):
         self.action_space = self.env.action_space
         self.action_space.high *= 7
         self.action_space.low *= 7
-        obs_ones = np.ones(shape=(self.env.observation_space.shape[0]-3,))
-        self.observation_space = spaces.Box(high=5*obs_ones, low=-5*obs_ones)
 
-        # 0, 1, 2, are target specific can possible remove those
-        # 3 = vx
-        # 4 = vy
-        # 5 = vz
+        self.front = 3
+        self.back = 4
+        obs_ones = np.ones(shape=(self.env.observation_space.shape[0]-self.front-self.back-8,))
+        self.observation_space = spaces.Box(high=5*obs_ones, low=-5*obs_ones)
+        print('State Dim: '+str(obs_ones.shape[0]))
+
+        # State Summary (dim=25):
+        # state[0] = vx
+        # state[1] = vy
+        # state[2] = vz
+        # state[3] = roll
+        # state[4] = pitch
+        # state[5-20] = Joint relative positions
+        #    even elements [0::2] position, scaled to -1..+1 between limits
+        #    odd elements  [1::2] angular speed, scaled to show -1..+1
+        # state[21-24] = feet contacts
+
         pass
     def reset(self):
         obs = self.env.reset()
-        return obs[3:]
+        # if self.back > 0:
+        #     return obs[self.front:-self.back]
+        # else:
+        #     return obs[self.front:]
+        # obs =  obs[self.front:-self.back]
+
+        # x, y, z, r, p, positions
+        obs = np.concatenate([obs[self.front:self.front+4], obs[self.front+4::2][:-self.back/2]])
+        return obs
+
     def step(self, action):
         new_obs, r, done, info = self.env.step(action)
-        return new_obs[3:], r, done, info
+        # new_obs =  new_obs[self.front:-self.back]
+
+        # x, y, z, r, p, positions
+        new_obs = np.concatenate([new_obs[self.front:self.front+4], new_obs[self.front+4::2][:-self.back/2]])
+        return new_obs, r, done, info
 
     def reset_raw(self):
         obs = self.env.reset()
@@ -70,6 +94,7 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
     episode_step = 0
     episode_reward = 0.0
     max_ep_rew = -10000
+
 
     train = []
     valid = []
@@ -129,6 +154,7 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
                     i += 1
             i = 0
 
+
             train_batch_size = 1000
             max_steps = train_episodes*1000
             update_interval = 2*max_steps/epochs
@@ -165,44 +191,18 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
 
                     start = time.time()
                     for i in range(10):
-                        (single, seq, corr, MSE) = env_learner.train_epoch(train_subst)
+                        (single, seq, corr) = env_learner.train_epoch(train_subst)
                     duration = time.time() - start
                     print('Epoch: ' + str(epoch) + '/' + str(epochs) + ' in ' + str(duration) + 's')
                     print('Train Single: ' + str(single))
-                    print('Train Single MSE: ' + str(MSE))
                     print('Train Seq: ' + str(seq))
                     print('Train Corr: ' + str(corr))
                     print('')
 
+            save_path = saver.save(sess, 'models/' + str(datetime_str) + '.ckpt')
+            print("Model saved in path: %s" % save_path)
             print('Train Size: ' + str(len(train)))
             print('Valid Size: ' + str(len(valid)))
 
             env_learner.train(train, epochs-epoch, valid, saver=saver, save_str=datetime_str, verbose=True)
             print('Trained Self Model')
-        else:
-            i=0
-            while i < nb_valid_episodes:
-                action = np.random.uniform(-1, 1, env.action_space.shape[0])
-                new_obs, r, done, info = env.step(max_action * action)
-                if episode_duration > 0:
-                    done = (done or (episode_step >= episode_duration))
-                valid.append([obs, max_action * action, r, new_obs, done, episode_step])
-                episode_step += 1
-                obs = new_obs
-
-                episode_reward += r
-                if done:
-                    obs = env.reset()
-                    max_ep_rew = max(max_ep_rew, episode_reward)
-                    episode_reward = 0.0
-                    i += 1
-            (single, seq, corr) = env_learner.get_loss(valid)
-            print('Final Epoch')
-            print('Valid Single: ' + str(single))
-            print('Valid Seq: ' + str(seq))
-            print('Valid Corr: ' + str(corr))
-            print('')
-        # Testing in this env
-        # run_tests(test_episodes, env, env_learner, loop)
-
-

@@ -114,12 +114,12 @@ if __name__ == '__main__':
     x_batches = batch(X_data, 32)
     y_batches = batch(y_data, 32)
 
-    for i in range(1, 5):
+    for i in range(1):
         exited = []
         active = []
         children = 0
 
-        max_epochs = 20*i
+        max_epochs = i
 
         while len(exited)+len(active) < 100 or len(active) > 0:
             if len(active) < 5 and len(exited)+len(active) < 100:

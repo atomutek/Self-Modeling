@@ -73,7 +73,7 @@ class PreCoEnvLearner(EnvLearner):
         print('Buffer Len: ' + str(self.buff_len))
         print('PreCo model:')
         print('Learning Rate: ' + str(lr))
-        self.max_seq_len = 60
+        self.max_seq_len = 30
         self.batch_size = 32
         num_components = 16
         """ State Prediction """
@@ -95,7 +95,6 @@ class PreCoEnvLearner(EnvLearner):
 
             tmp_a_seq = tf.split(self.a_seq, self.max_seq_len, 1)
             tmp_y_seq = tf.split(self.y_seq, self.max_seq_len, 1)
-
 
             corr_out, self.corr_hidden = corrector([self.x])
             self.corr_pi, self.corr_sigma, self.corr_mu = decode(self.corr_hidden, self.state_dim, num_components)
@@ -122,7 +121,7 @@ class PreCoEnvLearner(EnvLearner):
 
             # Losses for the corrector, and single/sequence predictor, each one should be executed for each train step
             self.corr_train_step = tf.train.AdamOptimizer(lr).minimize(self.loss_corr)
-            self.pred_seq_train_step = tf.train.AdamOptimizer(lr).minimize(self.loss_seq)
+            self.pred_seq_train_step = tf.train.AdamOptimizer(lr).minimize(self.loss_seq/self.max_seq_len)
             self.pred_single_train_step = tf.train.AdamOptimizer(lr).minimize(self.loss_single)
 
             # Testing
@@ -301,8 +300,8 @@ class PreCoEnvLearner(EnvLearner):
         Corr = 0.0
         MSE = 0.0
         for i in range(len(X)):
-            pi, sigma, mu, single, seq, corr, tmp_y_seq = self.sess.run([ self.pi_decoded, self.sigma_decoded, self.mu_decoded,
-                                                           self.loss_single, self.loss_seq, self.loss_corr, tf.split(self.y_seq, self.max_seq_len, 1)],
+            pi, sigma, mu, single, seq, corr = self.sess.run([ self.pi_decoded, self.sigma_decoded, self.mu_decoded,
+                                                           self.loss_single, self.loss_seq, self.loss_corr],
                                      feed_dict={
                                                 self.x: X[i][:,:self.state_dim],
                                                 self.a_seq: A[i],

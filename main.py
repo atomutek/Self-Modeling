@@ -1,12 +1,7 @@
 import argparse
-import logging
 import time
-
-import envs
 import gym
 import tensorflow as tf
-
-import envs
 
 
 def run(**kwargs):
@@ -33,15 +28,19 @@ def run(**kwargs):
     elif kwargs['env'] == 'AntBulletEnv-v0':
         print('Environment \'AntBulletEnv-v0\' chosen')
         from test_planners import test_plan_walker as testing
+        from test_planners import test_plan_walker_active as active_testing
         import pybullet, pybullet_envs
         pybullet.connect(pybullet.DIRECT)
-        env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+        # env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+        env = active_testing.RealerAntWrapper(gym.make("AntBulletEnv-v0"))
     elif kwargs['env'] == 'AntBulletEnv-v0_active':
         print('Environment \'AntBulletEnv-v0\' chosen')
+        from test_planners import test_plan_walker as reg_testing
         from test_planners import test_plan_walker_active as testing
         import pybullet, pybullet_envs
         pybullet.connect(pybullet.DIRECT)
-        env = testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+        # env = reg_testing.AntWrapper(gym.make("AntBulletEnv-v0"))
+        env = testing.RealerAntWrapper(gym.make("AntBulletEnv-v0"))
     elif kwargs['env'] == 'spring-mass-v0':
         print('Environment \'spring-mass-v0\' chosen')
         from envs.spring_mass_env import SpringMassCrawler
@@ -117,7 +116,7 @@ def run(**kwargs):
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--env', type=str, default='AntBulletEnv-v0')
-    parser.add_argument('--arch', type=str, default='preco')
+    parser.add_argument('--arch', type=str, default='precogen')
     parser.add_argument('--loop', type=str, default='open')
     parser.add_argument('--nb-epochs', type=int, default=100)
     parser.add_argument('--nb-train-episodes', type=int, default=100)
