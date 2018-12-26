@@ -115,7 +115,7 @@ def run(**kwargs):
 
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--env', type=str, default='AntBulletEnv-v0')
+    parser.add_argument('--env', type=str, default='AntBulletEnv-v0_active')
     parser.add_argument('--arch', type=str, default='precogen')
     parser.add_argument('--loop', type=str, default='open')
     parser.add_argument('--nb-epochs', type=int, default=100)

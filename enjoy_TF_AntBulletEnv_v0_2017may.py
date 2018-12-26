@@ -35,8 +35,8 @@ class SmallReactivePolicy:
 
 def main():
     pybullet.connect(pybullet.DIRECT)
-    # env = RealerAntWrapper(gym.make("AntBulletEnv-v0"))
-    env = AntWrapper(gym.make("AntBulletEnv-v0"))
+    env = RealerAntWrapper(gym.make("AntBulletEnv-v0"))
+    # env = AntWrapper(gym.make("AntBulletEnv-v0"))
     # env.render(mode="human")
     pi = SmallReactivePolicy(env.observation_space, env.action_space)
     # env.reset()
@@ -119,6 +119,78 @@ def main():
     # load = 'models/2018-11-27-02:08:16.ckpt' # Precogen 80/100 x+y+z+r+p+positions new simple precogen len 60 comp 8 std arch
     # load = 'models/2018-11-27-02:08:24.ckpt' #  PrecoGen 80/100 new simple precogen len 60 comp 8 std arch
 
+    # load = 'models/2018-11-30-21:38:39.ckpt' # x+y+z+r+p+positions precogen new formulation len 30 comp 8 batch size 32 regular
+
+    # load = 'models/2018-12-01-13:04:31.ckpt' # len 30 comp 8 10/100
+    # load = 'models/2018-12-01-13:04:34.ckpt' # preco len 30 comp 8 1M examples
+    # load = 'models/2018-12-02-01:27:04.ckpt' # len 30 comp 1 1M examples
+    # load = 'models/2018-12-01-16:12:01.ckpt' # len 60 comp 8 500 episodes # untested
+    # load = 'models/2018-12-01-15:02:28.ckpt' # len 30 comp 8 bigger arch
+
+    # load = 'models/2018-12-03-21:04:16.ckpt' # len 30 comp 1 (loss seq 0.034)
+    # load = 'models/2018-12-03-19:56:08.ckpt'
+
+    # load = 'models/2018-12-04-00:02:55.ckpt' # small len 30 comp 1 batch 1024
+    # load = 'models/2018-12-04-00:13:15.ckpt' # small len 30 comp 8 batch 1024
+    # load = 'models/2018-12-04-00:22:27.ckpt' # small len 30 comp 1 batch 1024 (loss seq 0.027)
+    # load = 'models/2018-12-04-00:45:25.ckpt' # small len 30 comp 1 batch 512
+    # load = 'models/2018-12-04-00:54:11.ckpt' # smaller
+    # load = 'models/2018-12-04-01:12:58.ckpt' # smaller deeper
+    # load = 'models/2018-12-04-10:18:07.ckpt' # smaller and deeper len 300 comp 1 batch 32 (loss seq 0.036)
+    # load = 'models/2018-12-04-14:09:10.ckpt' # len 100 comp 1
+
+    # load = 'models/2018-12-05-13:04:25.ckpt' # batch 1024 (seq loss 0.03277748450636864)
+    # load = 'models/2018-12-05-13:27:44.ckpt' # batch 2048 (seq loss 0.04668265022337437)
+
+    # load = 'models/2018-12-06-17:38:35.ckpt'
+    # load = 'models/2018-12-06-22:51:10.ckpt'
+    # load = 'models/2018-12-07-01:36:44.ckpt'
+
+    # load = 'models/2018-12-04-15:16:16.ckpt' # DNN
+    # load = 'models/2018-12-07-12:55:02.ckpt' # seems to be the best in open2
+    # load = 'models/2018-12-07-13:31:44.ckpt'
+    # load = 'models/2018-12-08-01:26:53.ckpt'
+
+    # load = 'models/2018-12-08-11:46:34.ckpt' # Preco exactly from the paper
+    # load = 'models/2018-12-08-12:04:53.ckpt' # redo l1 loss tan
+
+    # load = 'models/2018-12-09-13:43:07.ckpt'
+    # load = 'models/2018-12-09-15:58:06.ckpt'
+    # load = 'models/2018-12-09-16:48:40.ckpt'
+    # load = 'models/2018-12-09-19:36:42.ckpt'
+
+    # load = 'models/2018-12-09-22:27:49.ckpt' # out decoded in predictor
+    # load = 'models/2018-12-09-22:56:24.ckpt' # state decoded in predictor
+
+    # load = 'models/2018-12-11-17:25:13.ckpt' # new lstm seq formulation
+    # load = 'models/2018-12-11-17:55:43.ckpt'
+
+    # load = 'models/2018-12-11-18:38:18.ckpt' # maybe good for ppo?
+    # load = 'models/2018-12-11-20:22:44.ckpt'
+    # load = 'models/2018-12-11-23:22:43.ckpt'
+
+    # load = 'models/2018-12-14-02:44:31.ckpt' # 1 layer gru batch 32
+    # load = 'models/2018-12-14-02:45:00.ckpt' # 1 layer lstm batch 32
+
+    # load = 'models/2018-12-14-12:47:14.ckpt' # 1 layer gru batch 512
+    # load = 'models/2018-12-14-12:47:39.ckpt' # 1 layer lstm batch 512 # decent in open2
+    # load = 'models/2018-12-14-16:17:23.ckpt' # 2 layer gru batch 512
+    # load = 'models/2018-12-15-23:55:22.ckpt'
+    # load = 'models/2018-12-16-00:44:21.ckpt' # gru 2 layer drop 0.5 tanh 8 comp
+    # load = 'models/2018-12-16-16:53:48.ckpt' # gru 2 layer drop 0.5 no tanh 8 comp
+    # load = 'models/2018-12-16-00:59:42.ckpt' # gru 2 layer drop 0.5 tanh 8 comp active
+
+    # load = 'models/2018-12-18-12:38:01.ckpt' # very self consistent only latent shared all other layers seperate
+    # load = 'models/2018-12-18-12:38:07.ckpt'
+    # load = 'models/2018-12-18-18:19:42.ckpt'
+
+    # load = 'models/2018-12-19-12:41:07.ckpt' # gru 2 layer drop 0.5 8 comp all seperate drop 0.5 big network
+    # load = 'models/2018-12-19-02:29:22.ckpt' # gru 2 layer drop 0.5 8 comp all seperate drop 0.5 big network small batch size
+    # load = 'models/2018-12-21-23:44:00.ckpt'
+    # load = 'models/2018-12-22-15:44:09.ckpt' # gru 2 layer drop 0.5 8 comp all seperate drop 0.5 big network active
+
+    load = 'models/2018-12-24-11:12:45.ckpt' # len 300
+
     import datetime
     import tensorflow as tf
     # env_learner = DNNEnvLearner(env)
@@ -151,7 +223,7 @@ def main():
             score = 0
             restart_delay = 0
             obs = env.reset_raw()
-            new_obs = obs[3:]
+            new_obs = obs[3:-4]
             # new_obs = np.concatenate([obs[3:3+4], obs[3+4::2][:-4/2]])
             env_learner.reset(new_obs)
             real_pos = np.zeros(3)
@@ -177,7 +249,7 @@ def main():
                     pred_obs = env_learner.step(action_in=a, episode_step=frame, num=-1)
                 elif loop == 'closed' or loop == 'open2':
                     pred_obs = env_learner.step(action_in=a, obs_in=new_obs, episode_step=frame)
-                    # pred_obs = new_obs
+                    # pred_obs = new_obs+np.random.normal(0, 1, 21)
 
                 if len(pred_obs.shape) > 1 and len(real_pos_chart) == 0:
                     for _ in range(pred_obs.shape[0]):
@@ -186,7 +258,7 @@ def main():
 
                 obs, r, done, _ = env.step_raw(a)
 
-                corr_obs = obs[3:]
+                corr_obs = obs[3:-4]
                 # corr_obs =  np.concatenate([obs[3:3+4], obs[3+4::2][:-4/2]])
 
                 # Different x,y,z velocities
@@ -224,9 +296,9 @@ def main():
                 distance=5
                 yaw = 0
                 if loop == 'open2':
-                    new_obs = pred_obs
+                    new_obs = pred_obs[0]
                 else:
-                    new_obs = obs[3:]
+                    new_obs = obs[3:-4]
 
 
                 # still_open = env.render("human")

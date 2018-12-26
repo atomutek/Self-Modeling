@@ -20,7 +20,7 @@ class RealerAntWrapper(gym.Env):
 
         self.front = 3
         self.back = 4
-        obs_ones = np.ones(shape=(self.env.observation_space.shape[0]-self.front-self.back-8,))
+        obs_ones = np.ones(shape=(self.env.observation_space.shape[0]-self.front-self.back,))
         self.observation_space = spaces.Box(high=5*obs_ones, low=-5*obs_ones)
         print('State Dim: '+str(obs_ones.shape[0]))
 
@@ -42,18 +42,18 @@ class RealerAntWrapper(gym.Env):
         #     return obs[self.front:-self.back]
         # else:
         #     return obs[self.front:]
-        # obs =  obs[self.front:-self.back]
+        obs =  obs[self.front:-self.back]
 
         # x, y, z, r, p, positions
-        obs = np.concatenate([obs[self.front:self.front+4], obs[self.front+4::2][:-self.back/2]])
+        # obs = np.concatenate([obs[self.front:self.front+4], obs[self.front+4::2][:-self.back/2]])
         return obs
 
     def step(self, action):
         new_obs, r, done, info = self.env.step(action)
-        # new_obs =  new_obs[self.front:-self.back]
+        new_obs =  new_obs[self.front:-self.back]
 
         # x, y, z, r, p, positions
-        new_obs = np.concatenate([new_obs[self.front:self.front+4], new_obs[self.front+4::2][:-self.back/2]])
+        # new_obs = np.concatenate([new_obs[self.front:self.front+4], new_obs[self.front+4::2][:-self.back/2]])
         return new_obs, r, done, info
 
     def reset_raw(self):
@@ -160,11 +160,12 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
             update_interval = 2*max_steps/epochs
 
             epoch = 0
-
+            train_subst = []
             while len(train) < max_steps:
                 action = env_learner.next_move(obs, episode_step)
                 new_obs, r, done, info = env.step(max_action * action)
                 train.append([obs, max_action * action, r, new_obs, done, episode_step])
+                train_subst.append([obs, max_action * action, r, new_obs, done, episode_step])
                 episode_step += 1
                 obs = new_obs
 
@@ -179,14 +180,19 @@ def test(env, env_learner, epochs=100, train_episodes=10, test_episodes=100, loo
 
                 if len(train) % update_interval == 0 and len(train) > 0:
                     epoch += 1
-                    train_subst = []
-                    scores = []
 
-                    for i in range(len(train)):
-                        scores.append( (env_learner.uncertainty(train[i][1]/max_action, train[i][0]), i) )
-                    scores.sort(key=lambda tup: tup[0])
-                    for i in range(min(train_batch_size, len(scores))):
-                        train_subst.append(train[scores[i][1]])
+
+
+
+                    # replay based on uncertainty TODO: Replace with proper priority replay
+                    # train_subst = []
+                    # scores = []
+                    # for i in range(len(train)):
+                    #     scores.append( (env_learner.uncertainty(train[i][1]/max_action, train[i][0]), i) )
+                    # scores.sort(key=lambda tup: tup[0])
+                    # for i in range(min(train_batch_size, len(scores))):
+                    #     train_subst.append(train[scores[i][1]])
+
 
 
                     start = time.time()

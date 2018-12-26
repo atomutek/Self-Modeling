@@ -11,26 +11,26 @@ from misc import losses
 def predictor(x, h):
     # multiply = tf.shape(x[0])[0]
     # initial_h = tf.ones(multiply,1)*h
-    rnn_cell = tf.contrib.rnn.GRUCell(1024, name='predictor')
+    rnn_cell = tf.contrib.rnn.GRUCell(128, name='predictor')
     outputs, states = tf.nn.static_rnn(rnn_cell, x, initial_state=h, dtype=tf.float32)
     return outputs, states
 
 def corrector(x, h=None):
-    rnn_cell = tf.contrib.rnn.GRUCell(1024, name='corrector')
+    rnn_cell = tf.contrib.rnn.GRUCell(128, name='corrector')
     outputs, states = tf.nn.static_rnn(rnn_cell, x, initial_state=h, dtype=tf.float32)
     return outputs, states
 
 def decode(x, state_dim, num_components=None, drop_rate=0.5,):
 
     # x = tf.layers.batch_normalization(x, name='bn0')
-    x = tf.layers.dense(x, 512, name='mlp0')
+    x = tf.layers.dense(x, 128, name='mlp0')
     # x = tf.layers.dropout(x, rate=drop_rate, name='do0')
     # x = tf.nn.relu(x, name='rl0')
 
-    # x = tf.layers.batch_normalization(x, name='bn1')
-    x = tf.layers.dense(x, 256, name='mlp1')
-    # x = tf.layers.dropout(x, rate=drop_rate, name='do1')
-    x = tf.nn.tanh(x, name='rl1')
+    # # x = tf.layers.batch_normalization(x, name='bn1')
+    # x = tf.layers.dense(x, 256, name='mlp1')
+    # # x = tf.layers.dropout(x, rate=drop_rate, name='do1')
+    # x = tf.nn.tanh(x, name='rl1')
 
     stdev = tf.layers.dense(x, 128, name='stdev_hd1')
     stdev = tf.layers.dense(stdev, num_components, name='stdev_hd2')
@@ -63,11 +63,11 @@ class PreCoEnvLearner(EnvLearner):
         EnvLearner.__init__(self, env_in)
         # Initialization
 
-        self.latent_size = 1024
+        self.latent_size = 128
         self.last_r = np.array([0.0]).flatten()
         self.buffer = deque(self.buff_init * self.buff_len, maxlen=self.buff_len)
-        dropout_rate = 0.5
-        lr = 1e-5
+        dropout_rate = 0.0
+        lr = 0.00025
         print('General Stats: ')
         print('Drop Rate: ' + str(dropout_rate))
         print('Buffer Len: ' + str(self.buff_len))
@@ -75,7 +75,7 @@ class PreCoEnvLearner(EnvLearner):
         print('Learning Rate: ' + str(lr))
         self.max_seq_len = 30
         self.batch_size = 32
-        num_components = 16
+        num_components = 2
         """ State Prediction """
         self.x = tf.placeholder(dtype=tf.float32, shape=([self.batch_size, self.state_dim]))
         self.a = tf.placeholder(dtype=tf.float32, shape=([self.batch_size, self.act_dim]))
@@ -324,7 +324,7 @@ class PreCoEnvLearner(EnvLearner):
         self.last_state = self.sess.run([self.corr_hidden_out], feed_dict={self.x:obs_array})[0]
         return obs_in
 
-    def step(self, action_in, obs_in=None, episode_step=None, save=True, buff=None):
+    def step(self, action_in, obs_in=None, episode_step=None, save=True, buff=None, num=None):
         if obs_in is not None:
             action = np.array([action_in/self.act_mul_const])
             act_array = np.zeros((self.batch_size, self.act_dim))

@@ -24,6 +24,8 @@ class EnvLearner:
 
     def __batch__(self, data, batch_size):
         batches = []
+        if batch_size > len(data) or batch_size < 0:
+            return [data]
         while len(data) >= batch_size:
             batches.append(data[:batch_size])
             data = data[batch_size:]

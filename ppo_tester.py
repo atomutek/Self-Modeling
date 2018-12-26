@@ -108,6 +108,7 @@ def train(env_in, num_timesteps, seed, model_path=None, load=None, self=None, lo
     else:
         # env_in = AntWrapper(gym.make("AntBulletEnv-v0"))
         env_learner = PreCoGenEnvLearner(env_in)
+        # env_learner = PreCoEnvLearner(env_in)
         # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.45)
         gpu_options = None
         num_cpu = 4
