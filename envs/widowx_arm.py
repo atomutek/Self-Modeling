@@ -1,23 +1,15 @@
 import gym
-import math
-import numpy as np
 from gym import spaces
 import sys
-import copy
 import rospy
 import math
-import pickle
 import moveit_commander
 import moveit_msgs.msg
-import geometry_msgs.msg
 import numpy as np
 from moveit_msgs.msg._RobotState import RobotState
-from moveit_msgs.msg._RobotTrajectory import RobotTrajectory
-from moveit_msgs.srv import GetPositionFK, GetStateValidity, GetStateValidityRequest, GetStateValidityResponse
-from trajectory_msgs.msg._JointTrajectoryPoint import JointTrajectoryPoint
-from std_msgs.msg import Header
+from moveit_msgs.srv import GetPositionFK, GetStateValidity, GetStateValidityRequest
 
-from test_planners.control_widowx import calc_end_effector_pos, clip_joints
+from tensorflow_src.test_planners.control_widowx import calc_end_effector_pos, clip_joints
 
 # TODO migrate ROS interface to python3
 class WidowxROS(gym.Env):

@@ -2,7 +2,7 @@ import gym
 import matplotlib.pyplot as plt
 from gym import spaces
 
-from misc.spring_mass import *
+from tensorflow_src.misc.spring_mass import *
 
 
 class SpringMass(gym.Env):

@@ -1,7 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
-import tensorflow as tf
+import tensorflow_src as tf
 import math
 
 class SimpleArm(gym.Env):

@@ -3,7 +3,7 @@ import math
 import gym
 import numpy as np
 
-from env_learners.env_learner import EnvLearner
+from tensorflow_src.env_learners import EnvLearner
 from envs.simple_arm_3d import SimpleArm as SimpleArmRaw
 
 
